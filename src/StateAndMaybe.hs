@@ -1,5 +1,12 @@
 {-# LANGUAGE InstanceSigs #-}
-module StateAndMaybe (StateMaybe (StateMaybe), getStateMaybe) where
+
+module StateAndMaybe
+  ( StateMaybe (StateMaybe),
+    getStateMaybe,
+    MaybeWithState (MaybeWithState),
+    getMaybeWithState,
+  )
+where
 
 import Control.Monad.State (State)
 
@@ -18,8 +25,9 @@ instance Applicative (StateMaybe s) where
     case maybeFF of
       Just fF -> fmap fF <$> x
       Nothing -> pure Nothing
-  -- The line below produces behavior incompatible with later monad instance
-  -- fmap (<*>) f <*> x
+
+-- The line below produces behavior incompatible with later monad instance
+-- fmap (<*>) f <*> x
 
 instance Monad (StateMaybe s) where
   (>>=) :: StateMaybe s a -> (a -> StateMaybe s b) -> StateMaybe s b
@@ -29,13 +37,31 @@ instance Monad (StateMaybe s) where
       Nothing -> return Nothing
       Just x -> getStateMaybe (f x)
 
--- newtype MaybeWithState s a = MaybeWithState
---   { getMaybeWithState :: s -> Maybe (a, s)
---   }
+newtype MaybeWithState s a = MaybeWithState
+  { getMaybeWithState :: s -> Maybe (a, s)
+  }
 
--- instance Monad (MaybeWithState s) where
---   return x = MaybeWithState $ \s -> return (x, s)
---   h >>= f = MaybeWithState $ \s ->
---     do
---       (x, newS) <- getMaybeWithState h s
---       getMaybeWithState (f x) newS
+instance Functor (MaybeWithState s) where
+  fmap :: (a -> b) -> MaybeWithState s a -> MaybeWithState s b
+  fmap f (MaybeWithState x) =
+    MaybeWithState $ fmap fOnFirst . x
+    where
+      fOnFirst (y, s) = (f y, s)
+
+instance Applicative (MaybeWithState s) where
+  pure :: a -> MaybeWithState s a
+  pure x = MaybeWithState $ \s -> Just (x, s)
+  (<*>) :: MaybeWithState s (a -> b) -> MaybeWithState s a -> MaybeWithState s b
+  MaybeWithState f <*> x = MaybeWithState $ \s ->
+    do
+      (ff, newS) <- f s
+      getMaybeWithState (fmap ff x) newS
+
+instance Monad (MaybeWithState s) where
+  return :: a -> MaybeWithState s a
+  return x = MaybeWithState $ \s -> return (x, s)
+  (>>=) :: MaybeWithState s a -> (a -> MaybeWithState s b) -> MaybeWithState s b
+  MaybeWithState h >>= f = MaybeWithState $ \s ->
+    do
+      (x, newS) <- h s
+      getMaybeWithState (f x) newS
