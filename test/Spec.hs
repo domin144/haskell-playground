@@ -1,2 +1,6 @@
+import TestStateAndMaybe (testStateAndMaybe)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  result <- testStateAndMaybe True
+  if result then return () else error "fail"

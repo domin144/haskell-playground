@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      StateAndMaybe
   other-modules:
       Paths_haskell_playground
   hs-source-dirs:
@@ -33,6 +34,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , mtl
   default-language: Haskell2010
 
 executable haskell-playground-exe
@@ -51,6 +53,7 @@ test-suite haskell-playground-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      TestStateAndMaybe
       Paths_haskell_playground
   hs-source-dirs:
       test
@@ -58,4 +61,5 @@ test-suite haskell-playground-test
   build-depends:
       base >=4.7 && <5
     , haskell-playground
+    , mtl
   default-language: Haskell2010

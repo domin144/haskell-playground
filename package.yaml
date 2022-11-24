@@ -35,6 +35,8 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+  - mtl
 
 executables:
   haskell-playground-exe:
@@ -57,3 +59,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - haskell-playground
+    - mtl
