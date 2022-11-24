@@ -13,7 +13,13 @@ instance Applicative (StateMaybe s) where
   pure :: a -> StateMaybe s a
   pure = StateMaybe . pure . pure
   (<*>) :: StateMaybe s (a -> b) -> StateMaybe s a -> StateMaybe s b
-  StateMaybe f <*> StateMaybe x = StateMaybe $ fmap (<*>) f <*> x
+  StateMaybe f <*> StateMaybe x = StateMaybe $ do
+    maybeFF <- f
+    case maybeFF of
+      Just fF -> fmap fF <$> x
+      Nothing -> pure Nothing
+  -- The line below produces behavior incompatible with later monad instance
+  -- fmap (<*>) f <*> x
 
 instance Monad (StateMaybe s) where
   (>>=) :: StateMaybe s a -> (a -> StateMaybe s b) -> StateMaybe s b
